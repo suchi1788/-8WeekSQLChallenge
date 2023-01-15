@@ -1,0 +1,73 @@
+Solved Queries:
+
+1. With t as (select s.customer_id customer_id, s.product_id, m.price price from sales s join menu m on s.product_id= m.product_id)
+   select customer_id, sum(price)amount
+   from t 
+   group by customer_id order by customer_id;
+   
+2. Select customer_id, count(distinct order_date) visit 
+   from sales 
+   group by customer_id order by customer_id;
+  
+3. With t as (SELECT Customer_id, product_id, order_date, dense_rank () OVER ( Partition by Customer_id 
+  ORDER BY order_date ASC) product_rank FROM sales)
+  Select temp.customer_id, temp.product_id, m.product_name 
+  from t as temp join menu m on temp.product_id = m. product_id 
+  where food_rank =1 order by temp.customer_id;
+
+4. With t as (select product_id, count(product_id)many from sales group by product_id),
+ temp as (select product_id, many, dense_rank() over(order by many desc)rank_product from t )
+ Select temp.product_id, m.product_name, temp.many 
+ from temp join menu m on temp.product_id = m.product_id 
+ where rank_product =1;
+
+5. With t as (select customer_id, product_id, count(product_id)many from sales group by customer_id, product_id order by 1, 2 ASC),
+temp as (select customer_id, product_id, many, dense_rank() over( partition by customer_id order by many desc)rank_product from t )
+Select temp.customer_id, temp.product_id, m.product_name 
+from temp join menu m on temp.product_id = m.product_id 
+where temp.rank_product =1 order by 1, 2 ASC;
+
+6. With t as (SELECT s.Customer_id, s.product_id, m.join_date, s.order_date, dense_rank () OVER ( Partition by s.Customer_id 
+  ORDER BY s.order_date ASC) Food_rank 
+  FROM sales s join members m on s.customer_id = m.customer_id where s.order_date >= m.join_date)
+  Select t.customer_id, t.product_id, m.product_name 
+  from t join menu m on t.product_id = m. product_id 
+  where food_rank =1 order by t.customer_id;
+
+7. With t as (SELECT s.Customer_id, s.product_id, m.join_date, s.order_date, dense_rank () OVER ( Partition by s.Customer_id 
+   ORDER BY s.order_date ASC) Food_rank 
+   FROM sales s join members m on s.customer_id = m.customer_id where s.order_date >= m.join_date)
+   Select t.customer_id, t.product_id, m.product_name 
+   from t join menu m on t.product_id = m. product_id 
+   where food_rank =1 order by t.customer_id;
+
+8. With t as (SELECT s.Customer_id, s.product_id, m.join_date, s.order_date, sum(s.product_id) over( partition by s.customer_id ) sum_item  FROM sales s join members m on s.customer_id = m.customer_id where s.order_date < m.join_date)
+   Select t.customer_id, sum(m.price)amount, count(distinct m.product_name)total_items 
+   from t join menu m on t.product_id = m. product_id group by t.customer_id;
+
+9. With t as (select s.customer_id, s.product_id, m.product_name, sum(m.price) from sales s join menu m on s.product_id = m.product_id group by s.customer_id,s.product_id, m.product_name order by 1 ),
+   temp as (select t.customer_id, t.product_name, case when t.product_name ='sushi' then sum *20 else sum*10 end points from t)
+   Select temp.customer_id, sum(temp.points)points 
+   from temp 
+   group by temp.customer_id;
+
+10. With t as (SELECT s.Customer_id, s.product_id, menu.product_name, sum(menu.price), m.join_date, s.order_date FROM sales s join members m on s.customer_id = m.customer_id join menu on 
+s.product_id = menu.product_id where s.order_date between m.join_date and '2021-01-31' group by s.customer_id,s.product_id, menu.product_name, m.join_date, s.order_date order by 1 ),
+temp as (select t.customer_id, t.product_name, case when t.product_name ='sushi' then sum *20 when t.product_name ='curry' then sum *20 when t.product_name ='ramen' then sum *20 end points from t)
+Select temp.customer_id, sum(temp.points)points 
+from temp 
+group by temp.customer_id;
+
+Bonus Questions:
+ 11. With t as (SELECT s.Customer_id, s.product_id, menu.product_name, menu.price, m.join_date, s.order_date  FROM sales s left join members m on s.customer_id = m.customer_id join menu on 
+ s.product_id = menu.product_id)
+ select customer_id, order_date, product_name, price, case when order_date >= join_date then 'Y'else 'N'end member 
+ from t 
+ order by customer_id, order_date;
+
+12. With t as (SELECT s.Customer_id, s.product_id, menu.product_name, menu.price, m.join_date, s.order_date FROM sales s left join members m on s.customer_id = m.customer_id join menu on 
+s.product_id = menu.product_id),
+temp as(select customer_id, order_date, product_name, price, case when order_date >= join_date then 'Y' else 'N'end member from t order by customer_id)
+select customer_id, order_date, product_name, price, member, case when member ='N' then null when member ='Y' then dense_rank() over(partition by customer_id, member order by order_date)end ranking 
+from temp 
+order by customer_id asc, order_date asc; 
